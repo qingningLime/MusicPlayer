@@ -1,0 +1,140 @@
+* {
+    font-family: system-ui, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+div[leftcontent] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10%;
+}
+
+div[svgcontainer] {
+    width: 250px;
+    height: 250px;
+    padding: 20px;
+    background: #e8e8e8;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 5px 20px #0005;
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    margin-top: 28px;
+}
+
+svg[svg] {
+    transform: scale(3);
+}
+
+input[type="file"] {
+    display: none;
+}
+
+div[processbar] {
+    width: 325px;
+    background: #e8e8e8;
+    height: 8px;
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+div[process] {
+    width: 0%;
+    height: 100%;
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+div[time] {
+    margin-top: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 325px;
+    color: #c1c1c1;
+}
+
+p {
+    margin: 0;
+}
+
+p[name] {
+    user-select: auto;
+    -webkit-user-select: auto;
+}
+
+div[controls] {
+    display: flex;
+    width: 32px;
+    height: 28px;
+}
+
+svg[control][play] {
+    display: block;
+    transition: transform 0.1s ease;
+}
+
+svg[control][pause] {
+    display: none;
+    transition: transform 0.1s ease;
+}
+
+div[rightcontent] {
+    display: flex;
+    width: auto;
+    height: auto;
+    margin-left: 10%;
+}
+
+div[lyricscontainer] {
+    width: 50vw;
+    height: 75vh;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0px 0px 50px 50px #fff inset;
+    /* display: none; */
+}
+
+div[lyrics] {
+    position: absolute;
+    top: 45%;
+    left: 0;
+    width: 100%;
+    transition: 0.75s cubic-bezier(.06,1.38,.34,1.12);
+    font-size: 24px;
+    line-height: 40px;
+    z-index: -1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+div[lyric] {
+    margin: 0;
+    opacity: 0.3;
+    transition: opacity 0.75s cubic-bezier(.06,1.38,.34,1.12), font-size 0.75s cubic-bezier(.06,1.38,.34,1.12), font-weight 0.75s cubic-bezier(.06,1.38,.34,1.12);
+    width: 80%;
+}
+
+div[lyric][highlight] {
+    margin: 0;
+    opacity: 1;
+    font-size: 26px;
+    font-weight: bold;
+    filter: none;
+    width: 80%;
+}
