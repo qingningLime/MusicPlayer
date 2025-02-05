@@ -60,7 +60,7 @@ div[processbar] {
 div[process] {
     width: 0%;
     height: 100%;
-    background: #5559;
+    background: #5555;
     border-radius: 4px;
     box-shadow: 0 0 3px #0009;
 }
