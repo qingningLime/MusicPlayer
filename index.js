@@ -5,11 +5,14 @@ const progressBar = document.querySelector("div[processbar]");
 const process = document.querySelector("div[process]");
 const startTime = document.querySelector("p[start]");
 const endTime = document.querySelector("p[end]");
+const justSvg = document.querySelector("svg[svg]");
 const playBtn = document.querySelector("svg[play]");
 const pauseBtn = document.querySelector("svg[pause]");
 const audioName = document.querySelector("p[name]");
+const leftContent = document.querySelector("div[leftcontent]");
 const rightContent = document.querySelector("div[rightcontent]");
 
+let bgImg = new Image();
 let playing = false;
 let isDragging = false;
 let lrcData;
@@ -40,27 +43,32 @@ svgcontainer.addEventListener("click", async () => {
 
 audioFileInput.addEventListener("change", (event) => {
     const files = event.target.files;
-    if (files.length > 1) {
+    if (files.length > 2) {
         for (let i = 0; i < files.length; i++) {
             let file = files[i];
             const fileURL = URL.createObjectURL(file);
             console.log(file.name);
 
             if (file.name.split(".").pop().toLowerCase() !== "lrc") {
-                audioPlayer.src = fileURL;
-                playBtn.dispatchEvent(new Event("click"));
-                audioPlayer.addEventListener("loadedmetadata", () => {
-                    endTime.textContent = `-${formatTime(audioPlayer.duration)}`;
-                });
-                setTimeout(() => {
-                    audioPlayer.play();
-                }, 100);
+                if (['image/jpeg', 'image/png', 'image/gif',
+                        'image/bmp', 'image/webp'].includes(file.type)) {
+                    bgImg.src = fileURL;
+                } else {
+                    audioPlayer.src = fileURL;
+                    playBtn.dispatchEvent(new Event("click"));
+                    audioPlayer.addEventListener("loadedmetadata", () => {
+                        endTime.textContent = `-${formatTime(audioPlayer.duration)}`;
+                    });
+                    setTimeout(() => {
+                        audioPlayer.play();
+                    }, 100);
 
-                let filename = file.name.split('.')[0];
-                if (filename.length > 15) {
-                    filename = filename.substring(0, 15) + "...";
+                    let filename = file.name.split('.')[0];
+                    if (filename.length > 15) {
+                        filename = filename.substring(0, 15) + "...";
+                    }
+                    audioName.textContent = filename;
                 }
-                audioName.textContent = filename;
             } else {
                 reader = new FileReader();
                 reader.onload = function(e) {
@@ -72,6 +80,9 @@ audioFileInput.addEventListener("change", (event) => {
                 reader.readAsText(file);
             }
         }
+    } else {
+        rightContent.style.display = "none";
+        leftContent.style.marginLeft = "none";
     }
 });
 
@@ -85,6 +96,7 @@ function fetchLrcFile(filename) {
                 } else {
                     reject("No such lrc file");
                     rightContent.style.display = "none";
+                    leftContent.style.marginLeft = "none";
                 }
             })
             .then(lrcData => resolve(lrcData))
@@ -190,9 +202,11 @@ function updateLyrics() {
         if (index === activeIndex) {
             line.setAttribute("highlight", "")
             line.style.filter = "none";
+            line.style.marginLeft = "0";
         } else {
             line.removeAttribute("highlight");
             line.style.filter = `blur(${Math.abs(activeIndex - index) * 0.5}px)`;
+            line.style.marginLeft = `${Math.abs(activeIndex - index) * 1.25}px`;
         }
     });
 
@@ -201,7 +215,7 @@ function updateLyrics() {
         if (activeLine) {
             const containerHeight = document.querySelector("div[lyricscontainer]").clientHeight;
             const activeLineOffset = activeLine.offsetTop;
-            const offset = (containerHeight / 2) - activeLineOffset - 0.15 * containerHeight;
+            const offset = (containerHeight / 2) - activeLineOffset - 0.1 * containerHeight;
             lyricsElement.style.top = `${offset}px`;
         }
     }
@@ -210,3 +224,65 @@ function updateLyrics() {
 audioPlayer.addEventListener('play', () => {
     setInterval(updateLyrics, 100);
 });
+
+function getDominantColors(imageData, colorCount = 5) {
+    const pixels = imageData.data
+    const colorMap = {}
+    const minColorDistance = 45
+
+    for (let i = 0; i < pixels.length; i += 4 * 4) {
+        const r = pixels[i]
+        const g = pixels[i + 1]
+        const b = pixels[i + 2]
+        const key = `${r},${g},${b}`
+
+        let isUnique = true
+        for (const existingColor of Object.keys(colorMap)) {
+            const [er, eg, eb] = existingColor.split(',').map(Number)
+            const distance = Math.sqrt((r - er) ** 2 + (g - eg) ** 2 + (b - eb) ** 2)
+            if (distance < minColorDistance) {
+                isUnique = false
+                break
+            }
+        }
+
+        if (isUnique) {
+            colorMap[key] = (colorMap[key] || 0) + 1
+        }
+    }
+
+    return Object.entries(colorMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, colorCount)
+        .map(([color]) => {
+            const [r, g, b] = color.split(',')
+            return `rgba(${r}, ${g}, ${b}, 0.9)`
+        })
+}
+
+bgImg.onload = () => {
+    justSvg.style.display = "none";
+    svgcontainer.style.background = `url(${bgImg.src}`;
+
+    const tempCanvas = document.createElement('canvas')
+    const tempCtx = tempCanvas.getContext('2d')
+
+    tempCanvas.width = 100
+    tempCanvas.height = 100 * (bgImg.height / bgImg.width)
+
+    tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height)
+    const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height)
+
+    let colors = getDominantColors(imageData);
+    document.body.style.setProperty('--background', colors[0]);
+    document.body.style.setProperty('--color1', colors[0]);
+    document.body.style.setProperty('--color2', colors[1]);
+    document.body.style.setProperty('--color3', colors[2]);
+    document.body.style.setProperty('--color4', colors[3]);
+    document.body.style.setProperty('--color5', colors[4]);
+    document.body.style.setProperty('--color1-rgba', colors[0].replace("0.9", "0"));
+    document.body.style.setProperty('--color2-rgba', colors[1].replace("0.9", "0"));
+    document.body.style.setProperty('--color3-rgba', colors[2].replace("0.9", "0"));
+    document.body.style.setProperty('--color4-rgba', colors[3].replace("0.9", "0"));
+    document.body.style.setProperty('--color5-rgba', colors[4].replace("0.9", "0"));
+}
