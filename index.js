@@ -1,32 +1,24 @@
-const svgcontainer = document.querySelector("div[svgcontainer]");
-const audioFileInput = document.querySelector("input[audiofile]");
-const audioPlayer = document.querySelector("audio[player]");
-const progressBar = document.querySelector("div[processbar]");
-const process = document.querySelector("div[process]");
-const startTime = document.querySelector("p[start]");
-const endTime = document.querySelector("p[end]");
-const justSvg = document.querySelector("svg[svg]");
-const playBtn = document.querySelector("svg[play]");
-const pauseBtn = document.querySelector("svg[pause]");
-const audioName = document.querySelector("p[name]");
-const leftContent = document.querySelector("div[leftcontent]");
-const rightContent = document.querySelector("div[rightcontent]");
+const svgcontainer = document.querySelector(".svgcontainer");
+const audioFileInput = document.querySelector(".audiofile");
+const audioPlayer = document.querySelector(".player");
+const progressBar = document.querySelector(".processbar");
+const process = document.querySelector(".process");
+const startTime = document.querySelector(".start");
+const endTime = document.querySelector(".end");
+const justSvg = document.querySelector(".svg");
+const playBtn = document.querySelector(".play");
+const pauseBtn = document.querySelector(".pause");
+const audioName = document.querySelector(".name");
+const leftContent = document.querySelector(".leftcontent");
+const rightContent = document.querySelector(".rightcontent");
 
 let bgImg = new Image();
 let playing = false;
 let isDragging = false;
 let lrcData;
 let lyrics = [];
-let lyricsElement;
+let lyricsElement = document.querySelector(".lyrics");
 let reader;
-
-svgcontainer.addEventListener("mouseover", () => {
-    svgcontainer.style.transform = "scale(1.1)";
-});
-
-svgcontainer.addEventListener("mouseout", () => {
-    svgcontainer.style.transform = "scale(1)";
-});
 
 svgcontainer.addEventListener("click", async () => {
     // const filePaths = await window.electron.openDialog();
@@ -41,50 +33,54 @@ svgcontainer.addEventListener("click", async () => {
     audioFileInput.click();
 });
 
+audioPlayer.addEventListener("loadedmetadata", () => {
+    endTime.textContent = `-${formatTime(audioPlayer.duration)}`;
+    setTimeout(() => {
+        playBtn.click();
+    }, 100);
+});
+
 audioFileInput.addEventListener("change", (event) => {
     const files = event.target.files;
-    if (files.length > 2) {
-        for (let i = 0; i < files.length; i++) {
-            let file = files[i];
-            const fileURL = URL.createObjectURL(file);
-            console.log(file.name);
+    disableLyric();
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileURL = URL.createObjectURL(file);
+        console.log(file.name);
 
-            if (file.name.split(".").pop().toLowerCase() !== "lrc") {
-                if (['image/jpeg', 'image/png', 'image/gif',
-                        'image/bmp', 'image/webp'].includes(file.type)) {
-                    bgImg.src = fileURL;
-                } else {
-                    audioPlayer.src = fileURL;
-                    playBtn.dispatchEvent(new Event("click"));
-                    audioPlayer.addEventListener("loadedmetadata", () => {
-                        endTime.textContent = `-${formatTime(audioPlayer.duration)}`;
-                    });
-                    setTimeout(() => {
-                        audioPlayer.play();
-                    }, 100);
+        if (file.type.startsWith('image/')) {
+            bgImg.src = fileURL;
+        } else if (file.type.startsWith('audio/')) {
+            audioPlayer.src = fileURL;
 
-                    let filename = file.name.split('.')[0];
-                    if (filename.length > 15) {
-                        filename = filename.substring(0, 15) + "...";
-                    }
-                    audioName.textContent = filename;
-                }
-            } else {
-                reader = new FileReader();
-                reader.onload = function(e) {
-                    lrcData = e.target.result;
-                    lyrics = parseLrc(lrcData);
-                    lyricsElement = document.querySelector("div[lyrics]");
-                    lyricsElement.innerHTML = lyrics.map(line => `<div lyric>${line.text}</div>`).join('');
-                };
-                reader.readAsText(file);
+            let filename = file.name.split('.')[0];
+            if (filename.length > 15) {
+                filename = filename.substring(0, 15) + "...";
             }
+            audioName.textContent = filename;
+        } else if (file.type.startsWith('text/') || file.name.toLowerCase().endsWith(".lrc")) {
+            reader = new FileReader();
+            reader.onload = function(e) {
+                enableLyric();
+                lrcData = e.target.result;
+                lyrics = parseLrc(lrcData);
+                lyricsElement = document.querySelector(".lyrics");
+                lyricsElement.innerHTML = lyrics.map(line => `<div>${line.text}</div>`).join('');
+            };
+            reader.readAsText(file);
         }
-    } else {
-        rightContent.style.display = "none";
-        leftContent.style.marginLeft = "none";
     }
 });
+
+function disableLyric() {
+    rightContent.style.display = "none";
+    leftContent.style.paddingLeft = "none";
+}
+
+function enableLyric() {
+    rightContent.style.display = "";
+    leftContent.style.paddingLeft = "";
+}
 
 function fetchLrcFile(filename) {
     return new Promise((resolve, reject) => {
@@ -95,8 +91,7 @@ function fetchLrcFile(filename) {
                     return response.text();
                 } else {
                     reject("No such lrc file");
-                    rightContent.style.display = "none";
-                    leftContent.style.marginLeft = "none";
+                    disableLyric();
                 }
             })
             .then(lrcData => resolve(lrcData))
@@ -113,6 +108,9 @@ audioPlayer.addEventListener("timeupdate", () => {
 });
 
 progressBar.addEventListener("mousedown", (event) => {
+    if (Number.isNaN(audioPlayer.duration)) {
+        return;
+    }
     isDragging = true;
     updateProgress(event);
 });
@@ -128,6 +126,9 @@ document.addEventListener("mouseup", () => {
 });
 
 playBtn.addEventListener("click", () => {
+    if (Number.isNaN(audioPlayer.duration)) {
+        return;
+    }
     playing = true;
     audioPlayer.play();
     pauseBtn.style.display = "block";
@@ -150,7 +151,7 @@ function updateProgress(event) {
     audioPlayer.currentTime = (percentage / 100) * audioPlayer.duration;
 
     if (!playing) {
-        playBtn.dispatchEvent(new Event("click"));
+        playBtn.click();
     }
 }
 
@@ -187,7 +188,7 @@ function parseLrc(lrcText) {
 
 function updateLyrics() {
     const currentTime = audioPlayer.currentTime;
-    const lyricLines = document.querySelectorAll('div[lyric]');
+    const lyricLines = document.querySelectorAll('.lyrics > *');
     let activeIndex = 0;
 
     for (let i = 0; i < lyrics.length; i++) {
@@ -200,11 +201,11 @@ function updateLyrics() {
 
     lyricLines.forEach((line, index) => {
         if (index === activeIndex) {
-            line.setAttribute("highlight", "")
+            line.classList.add("highlight");
             line.style.filter = "none";
             line.style.marginLeft = "0";
         } else {
-            line.removeAttribute("highlight");
+            line.classList.remove("highlight");
             line.style.filter = `blur(${Math.abs(activeIndex - index) * 0.5}px)`;
             line.style.marginLeft = `${Math.abs(activeIndex - index) * 1.25}px`;
         }
@@ -213,17 +214,29 @@ function updateLyrics() {
     if (activeIndex >= 0) {
         const activeLine = lyricLines[activeIndex];
         if (activeLine) {
-            const containerHeight = document.querySelector("div[lyricscontainer]").clientHeight;
+            const containerHeight = document.querySelector(".lyricscontainer").clientHeight;
             const activeLineOffset = activeLine.offsetTop;
             const offset = (containerHeight / 2) - activeLineOffset - 0.1 * containerHeight;
             lyricsElement.style.top = `${offset}px`;
         }
     }
+
+    if (playing) {
+        requestAnimationFrame(updateLyrics);
+    }
 }
 
 audioPlayer.addEventListener('play', () => {
-    setInterval(updateLyrics, 100);
+    requestAnimationFrame(updateLyrics);
 });
+
+window.addEventListener('resize', () => {
+    lyricsElement.classList.add("noTransition");
+    updateLyrics();
+    lyricsElement.classList.remove("noTransition");
+});
+
+updateLyrics();
 
 function getDominantColors(imageData, colorCount = 5) {
     const pixels = imageData.data
