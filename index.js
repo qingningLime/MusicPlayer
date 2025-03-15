@@ -37,6 +37,9 @@ let lrcData;
 let lyrics = [];
 let lyricsElement = document.querySelector(".lyrics");
 let reader;
+let imageLoaded = false;
+let audioLoaded = false;
+let lrcLoaded = false;
 
 svgcontainer.addEventListener("click", async () => {
     // const filePaths = await window.electron.openDialog();
@@ -53,9 +56,13 @@ svgcontainer.addEventListener("click", async () => {
 
 audioPlayer.addEventListener("loadedmetadata", () => {
     endTime.textContent = `-${formatTime(audioPlayer.duration)}`;
-    setTimeout(() => {
-        playBtn.click();
-    }, 100);
+    if (imageLoaded && audioLoaded && lrcLoaded) {
+        setTimeout(() => {
+            playBtn.click();
+        }, 100);
+    } else {
+        alert("请同时选择音频、封面和lrc文件")
+    }
 });
 
 audioFileInput.addEventListener("change", (event) => {
@@ -68,6 +75,7 @@ audioFileInput.addEventListener("change", (event) => {
 
         if (file.type.startsWith('image/')) {
             bgImg.src = fileURL;
+            imageLoaded = true;
         } else if (file.type.startsWith('audio/')) {
             audioPlayer.src = fileURL;
 
@@ -76,6 +84,7 @@ audioFileInput.addEventListener("change", (event) => {
                 filename = filename.substring(0, 15) + "...";
             }
             audioName.textContent = filename;
+            audioLoaded = true;
         } else if (file.type.startsWith('text/') || file.name.toLowerCase().endsWith(".lrc")) {
             reader = new FileReader();
             reader.onload = function(e) {
@@ -86,6 +95,7 @@ audioFileInput.addEventListener("change", (event) => {
                 lyricsElement.innerHTML = lyrics.map(line => `<div>${line.text}</div>`).join('');
             };
             reader.readAsText(file);
+            lrcLoaded = true;
         }
     }
 });
@@ -294,6 +304,9 @@ function getDominantColors(imageData, colorCount = 5) {
 bgImg.onload = () => {
     justSvg.style.display = "none";
     svgcontainer.style.background = `url(${bgImg.src}`;
+    svgcontainer.style.backgroundSize = "cover";
+    svgcontainer.style.backgroundPosition = "center";
+    svgcontainer.style.backgroundRepeat = "no-repeat";
 
     const tempCanvas = document.createElement('canvas')
     const tempCtx = tempCanvas.getContext('2d')
