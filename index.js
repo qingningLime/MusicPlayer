@@ -22,7 +22,7 @@ function mainDivScalePosition() {
     mainDiv.style.transform = `scale(${scale})`;
     mainDiv.style.top = `calc(50% - ${mainDiv.clientHeight / 2}px)`;
     mainDiv.style.left = `calc(50% - ${mainDiv.clientWidth / 2}px)`;
-    mainDiv.style.marginLeft = `${10 * scaleX}%`;
+    mainDiv.style.marginLeft = `${7.5 * scaleX}%`;
 
     rightContent.style.paddingLeft = `${10 / scaleX}%`;
 }
