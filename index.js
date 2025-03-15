@@ -1,6 +1,7 @@
 const svgcontainer = document.querySelector(".svgcontainer");
 const audioFileInput = document.querySelector(".audiofile");
 const audioPlayer = document.querySelector(".player");
+audioPlayer.loop = true;
 const progressBar = document.querySelector(".processbar");
 const process = document.querySelector(".process");
 const startTime = document.querySelector(".start");
@@ -11,6 +12,21 @@ const pauseBtn = document.querySelector(".pause");
 const audioName = document.querySelector(".name");
 const leftContent = document.querySelector(".leftcontent");
 const rightContent = document.querySelector(".rightcontent");
+const mainDiv = document.querySelector(".main");
+
+function mainDivScalePosition() {
+    const scaleX = mainDiv.clientWidth / 1280;
+    const scaleY = mainDiv.clientHeight / 720;
+    const scale = Math.max(scaleX, scaleY);
+
+    mainDiv.style.transform = `scale(${scale})`;
+    mainDiv.style.top = `calc(50% - ${mainDiv.clientHeight / 2}px)`;
+    mainDiv.style.left = `calc(50% - ${mainDiv.clientWidth / 2}px)`;
+    mainDiv.style.marginLeft = `${10 * scale}%`;
+}
+
+window.addEventListener("resize", mainDivScalePosition);
+mainDivScalePosition();
 
 let bgImg = new Image();
 let playing = false;
@@ -206,7 +222,7 @@ function updateLyrics() {
             line.style.marginLeft = "0";
         } else {
             line.classList.remove("highlight");
-            line.style.filter = `blur(${Math.abs(activeIndex - index) * 0.5}px)`;
+            line.style.filter = `blur(${Math.abs(activeIndex - index) * 0.25}px)`;
             line.style.marginLeft = `${Math.abs(activeIndex - index) * 1.25}px`;
         }
     });
@@ -216,7 +232,7 @@ function updateLyrics() {
         if (activeLine) {
             const containerHeight = document.querySelector(".lyricscontainer").clientHeight;
             const activeLineOffset = activeLine.offsetTop;
-            const offset = (containerHeight / 2) - activeLineOffset - 0.1 * containerHeight;
+            const offset = (containerHeight / 2) - activeLineOffset - 0.05 * containerHeight;
             lyricsElement.style.top = `${offset}px`;
         }
     }
