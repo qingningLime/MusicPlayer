@@ -236,6 +236,10 @@ function updateLyrics() {
             line.classList.remove("highlight");
             line.style.filter = `blur(${Math.abs(activeIndex - index) * 0.25}px)`;
             line.style.marginLeft = `${Math.abs(activeIndex - index) * 1.25}px`;
+
+            if (Math.abs(activeIndex - index) >= 8) {
+                line.style.display = "none";
+            }
         }
     });
 
