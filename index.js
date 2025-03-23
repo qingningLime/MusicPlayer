@@ -238,7 +238,7 @@ function updateLyrics() {
                 line.style.display = "block";
             } else {
                 line.classList.remove("highlight");
-                line.style.filter = `${distance * 0.25}px`;
+                line.style.filter = `blur(${distance * 0.25}px)`;
                 line.style.marginLeft = `${distance * 1.25}px`;
                 line.style.display = "block";
 
