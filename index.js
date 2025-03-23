@@ -228,18 +228,26 @@ function updateLyrics() {
     }
 
     lyricLines.forEach((line, index) => {
-        if (index === activeIndex) {
-            line.classList.add("highlight");
-            line.style.filter = "none";
-            line.style.marginLeft = "0";
-        } else {
-            line.classList.remove("highlight");
-            line.style.filter = `blur(${Math.abs(activeIndex - index) * 0.25}px)`;
-            line.style.marginLeft = `${Math.abs(activeIndex - index) * 1.25}px`;
+        const distance = Math.abs(activeIndex - index);
 
-            if (Math.abs(activeIndex - index) >= 8) {
-                line.style.display = "none";
+        if (distance <= 8) {
+            if (index === activeIndex) {
+                line.classList.add("highlight");
+                line.style.filter = "none";
+                line.style.marginLeft = "0";
+                line.style.display = "block";
+            } else {
+                line.classList.remove("highlight");
+                line.style.filter = `${distance * 0.25}px`;
+                line.style.marginLeft = `${distance * 1.25}px`;
+                line.style.display = "block";
+
+                if (distance >= 9) {
+                    line.style.display = "none";
+                }
             }
+        } else {
+            line.style.display = "none";
         }
     });
 
