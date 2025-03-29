@@ -1,5 +1,15 @@
+@font-face {
+    src: url(./PingFangSC-Regular.woff2);
+    font-family: "PingFang";
+}
+
+@font-face {
+    src: url(./sf-pro-display_regular.woff2);
+    font-family: "SFPro";
+}
+
 * {
-    font-family: system-ui, sans-serif;
+    font-family: "SFPro", "PingFang";
     -webkit-user-select: none;
     user-select: none;
 }
@@ -126,7 +136,7 @@ p {
 }
 
 .lyricscontainer {
-    width: 45vw;
+    width: 50vw;
     height: 100vh;
     overflow: hidden;
     position: relative;
@@ -137,10 +147,10 @@ p {
 
 .lyrics {
     position: absolute;
-    top: 100%;
+    top: 50%;
     left: 0;
-    width: 60%;
-    transition: 0.75s cubic-bezier(.06, 1.38, .34, 1.12);
+    width: 100%;
+    transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
     font-size: 24px;
     line-height: 40px;
     z-index: 2;
@@ -151,24 +161,31 @@ p {
     color: #fff;
 }
 
-.lyrics > div {
-    margin: 0;
+.lyrics div {
+    margin: 2% 0;
     opacity: 0.3;
-    transition: opacity 0.75s cubic-bezier(.06, 1.38, .34, 1.12),
-        font-size 0.75s cubic-bezier(.06, 1.38, .34, 1.12),
-        font-weight 0.75s cubic-bezier(.06, 1.38, .34, 1.12),
-        margin-left 0.75s cubic-bezier(.06, 1.38, .34, 1.12);
+    will-change: opacity, font-size, font-weight, margin-left, margin-top;
+    transition: opacity 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
+        font-size 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
+        font-weight 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
+        margin-left 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
+        margin-top 0.75s cubic-bezier(0.25, 0.8, 0.25, 1);
     width: 100%;
-    text-shadow: 0 0 3px #0009;
+    text-shadow: 0 1px 5px #000;
+    font-weight: normal;
+    font-size: inherit;
+    margin-top: 2%;
+    font-size: 28px;
 }
 
-.lyrics > .highlight {
-    margin: 0;
+.lyrics div.highlight {
+    margin: 2% 0;
     opacity: 1;
-    font-size: 26px;
+    font-size: 32px;
     font-weight: bold;
     filter: none;
     width: 100%;
+    margin-top: 2%;
 }
 
 .background {

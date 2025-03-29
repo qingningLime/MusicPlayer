@@ -13,6 +13,7 @@ const audioName = document.querySelector(".name");
 const leftContent = document.querySelector(".leftcontent");
 const rightContent = document.querySelector(".rightcontent");
 const mainDiv = document.querySelector(".main");
+const processedLines = new Set();
 
 function mainDivScalePosition() {
     const scaleX = mainDiv.clientWidth / 1280;
@@ -232,22 +233,37 @@ function updateLyrics() {
 
         if (distance <= 8) {
             if (index === activeIndex) {
+                void line.offsetWidth;
                 line.classList.add("highlight");
                 line.style.filter = "none";
                 line.style.marginLeft = "0";
-                line.style.display = "block";
+                line.style.visibility = "visible";
+
+                if (!processedLines.has(index) && lyricLines[index + 1]) {
+                    // lyricLines[index + 1].style.transition = "margin-top 0.2s ease-out";
+                    lyricLines[index + 1].style.marginTop = `${line.clientHeight - 6}px`;
+
+                    setTimeout(() => {
+                        lyricLines[index + 1].style.marginTop = "6px";
+                        processedLines.add(index);
+                    }, 100);
+                }
             } else {
+                void line.offsetWidth;
                 line.classList.remove("highlight");
-                line.style.filter = `blur(${distance * 0.25}px)`;
+                line.style.filter = `blur(${distance * 0.5}px)`;
                 line.style.marginLeft = `${distance * 1.25}px`;
-                line.style.display = "block";
+                // line.style.display = "block";
+                line.style.visibility = "visible";
 
                 if (distance >= 9) {
-                    line.style.display = "none";
+                    // line.style.display = "none";
+                    line.style.visibility = "hidden";
                 }
             }
         } else {
-            line.style.display = "none";
+            // line.style.display = "none";
+            line.style.visibility = "hidden";
         }
     });
 
@@ -256,7 +272,7 @@ function updateLyrics() {
         if (activeLine) {
             const containerHeight = document.querySelector(".lyricscontainer").clientHeight;
             const activeLineOffset = activeLine.offsetTop;
-            const offset = (containerHeight / 2) - activeLineOffset - 0.05 * containerHeight;
+            const offset = (containerHeight / 2) - activeLineOffset - 0.1 * containerHeight;
             lyricsElement.style.top = `${offset}px`;
         }
     }
