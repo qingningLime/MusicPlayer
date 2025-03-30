@@ -164,18 +164,22 @@ p {
 .lyrics div {
     margin: 2% 0;
     opacity: 0.3;
-    will-change: opacity, font-size, font-weight, margin-left, margin-top;
+    will-change: opacity, font-size, font-weight, margin-left, margin-top, margin-bottom;
     transition: opacity 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
         font-size 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
         font-weight 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
         margin-left 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
-        margin-top 0.75s cubic-bezier(0.25, 0.8, 0.25, 1);
+        margin-top 1s cubic-bezier(0.25, 0.8, 0.25, 1),
+        margin-bottom 1s cubic-bezier(0.25, 0.8, 0.25, 1);
     width: 100%;
     text-shadow: 0 1px 5px #000;
     font-weight: normal;
     font-size: inherit;
     margin-top: 2%;
     font-size: 28px;
+    word-wrap: break-word;
+    white-space: normal;
+    /* word-break: break-all; */
 }
 
 .lyrics div.highlight {
