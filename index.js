@@ -28,7 +28,9 @@ function mainDivScalePosition(width, height) {
     mainDiv.style.transform = `scale(${scale})`;
     mainDiv.style.top = `calc(50% - ${mainDiv.clientHeight / 2}px)`;
     mainDiv.style.left = `calc(50% - ${mainDiv.clientWidth / 2}px)`;
-    mainDiv.style.marginLeft = `${7.5 * scaleX}%`;
+    if (width === 1280) {
+        mainDiv.style.marginLeft = `${7.5 * scaleX}%`;
+    }
 
     rightContent.style.paddingLeft = `${10 / scaleX}%`;
 }
@@ -80,8 +82,6 @@ audioPlayer.addEventListener("loadedmetadata", () => {
             height = 437;
             window.dispatchEvent(new Event("resize"));
             mainDiv.style.marginLeft = "0";
-            // mainDiv.style.transform = "scale(1)";
-            console.log(mainDiv.clientWidth, mainDiv.clientHeight);
         }
         playBtn.click();
     } else {
