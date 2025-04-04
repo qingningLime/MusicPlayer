@@ -15,10 +15,14 @@ const rightContent = document.querySelector(".rightcontent");
 const mainDiv = document.querySelector(".main");
 const processedLines = new Set();
 let needProcess = undefined;
+let width = 1280;
+let height = 720;
 
-function mainDivScalePosition() {
-    const scaleX = mainDiv.clientWidth / 1280;
-    const scaleY = mainDiv.clientHeight / 720;
+function mainDivScalePosition(width, height) {
+    // width: 1280, height: 720 (Image loaded)
+    // width: 325, height: 437 (Image unloaded)
+    const scaleX = mainDiv.clientWidth / width;
+    const scaleY = mainDiv.clientHeight / height;
     const scale = Math.max(scaleX, scaleY);
 
     mainDiv.style.transform = `scale(${scale})`;
@@ -29,8 +33,10 @@ function mainDivScalePosition() {
     rightContent.style.paddingLeft = `${10 / scaleX}%`;
 }
 
-window.addEventListener("resize", mainDivScalePosition);
-mainDivScalePosition();
+window.addEventListener("resize", () => {
+    mainDivScalePosition(width, height);
+});
+mainDivScalePosition(width, height);
 
 let bgImg = new Image();
 let playing = false;
@@ -58,12 +64,28 @@ svgcontainer.addEventListener("click", async () => {
 
 audioPlayer.addEventListener("loadedmetadata", () => {
     endTime.textContent = `-${formatTime(audioPlayer.duration)}`;
-    if (imageLoaded && audioLoaded && lrcLoaded) {
-        setTimeout(() => {
-            playBtn.click();
-        }, 100);
+    // if (imageLoaded && audioLoaded && lrcLoaded) {
+    //     setTimeout(() => {
+    //         playBtn.click();
+    //     }, 100);
+    // } else if (!lrcLoaded && imageLoaded && audioLoaded) {
+    //     window.dispatchEvent(new Event("resize"));
+    //     setTimeout(() => {
+    //         playBtn.click();
+    //     }, 100);
+    // }
+    if (audioLoaded) {
+        if (!lrcLoaded) {
+            width = 325;
+            height = 437;
+            window.dispatchEvent(new Event("resize"));
+            mainDiv.style.marginLeft = "0";
+            // mainDiv.style.transform = "scale(1)";
+            console.log(mainDiv.clientWidth, mainDiv.clientHeight);
+        }
+        playBtn.click();
     } else {
-        alert("请同时选择音频、封面和lrc文件")
+        alert("请选择音频文件");
     }
 });
 
