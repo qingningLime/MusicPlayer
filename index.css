@@ -1,17 +1,38 @@
 @font-face {
-    src: url(./PingFangSC-Regular.woff2);
-    font-family: "PingFang";
+    src: url(fonts/PingFangSC-Regular.woff2);
+    font-family: "PingFangSC-Regular";
 }
 
 @font-face {
-    src: url(./sf-pro-display_regular.woff2);
-    font-family: "SFPro";
+    src: url(fonts/sf-pro-display_regular.woff2);
+    font-family: "SFPro-Regular";
+}
+
+@font-face {
+    src: url(fonts/PingFangSC-Semibold.woff2);
+    font-family: "PingFangSC-Semibold";
+}
+
+@font-face {
+    src: url(fonts/sf-pro-display_semibold.woff2);
+    font-family: "SFPro-Semibold";
 }
 
 * {
-    font-family: "SFPro", "PingFang";
+    font-family: "SFPro-Regular", "PingFangSC-Regular";
     -webkit-user-select: none;
     user-select: none;
+    --color1: rgba(232, 232, 232, 0.9);
+    --color2: rgba(197, 197, 199, 0.9);
+    --color3: rgba(255, 255, 255, 0.9);
+    --color4: rgba(150, 150, 150, 0.9);
+    --color5: rgba(210, 210, 210, 0.9);
+    --color1-rgba: rgba(232, 232, 232, 0);
+    --color2-rgba: rgba(197, 197, 199, 0);
+    --color3-rgba: rgba(255, 255, 255, 0);
+    --color4-rgba: rgba(150, 150, 150, 0);
+    --color5-rgba: rgba(210, 210, 210, 0);
+    --type-time: 0;
 }
 
 body {
@@ -21,11 +42,11 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
+    /* -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px); */
     z-index: 2;
     margin: 0;
-    background: #000;
+    background: #e8e8e8;
 }
 
 .main {
@@ -34,11 +55,13 @@ body {
     left: 0;
     width: auto;
     height: auto;
-    display: flex;
+    display: inline-flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     transition: scale 0.3s ease;
+    margin-right: 20%;
+    margin-left: -5%;
 }
 
 .leftcontent {
@@ -50,11 +73,11 @@ body {
 }
 
 .svgcontainer {
-    width: 250px;
-    height: 250px;
-    padding: 20px;
+    width: 320px;
+    height: 320px;
     background: #e8e8e8;
     border-radius: 10px;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -62,6 +85,10 @@ body {
     transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
     margin-top: 28px;
     transform: scale(1);
+    background: url(./default.svg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .svgcontainer:hover {
@@ -69,7 +96,14 @@ body {
 }
 
 .svg {
-    transform: scale(3);
+    width: 100%;
+    height: 100%;
+    background: #e8e8e8;
+}
+
+.svg svg {
+    width: 100%;
+    height: 100%;
 }
 
 input[type="file"] {
@@ -94,7 +128,7 @@ input[type="file"] {
 }
 
 .time {
-    margin-top: 60px;
+    margin-top: 25px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -129,28 +163,20 @@ p {
 }
 
 .rightcontent {
-    display: flex;
-    width: 50%;
-    height: auto;
-    padding-left: 10vw;
+    padding-left: 10%;
+    margin-right: 10%;
 }
 
 .lyricscontainer {
-    width: 50vw;
+    width: 160%;
     height: 100vh;
-    overflow: hidden;
     position: relative;
-    /* box-shadow: 0px 0px 100px 50px #000 inset; */
     z-index: 2;
-    padding: 0 5vw;
 }
 
 .lyrics {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transform: translateY(250%);
+    max-width: 100%;
     font-size: 24px;
     line-height: 40px;
     z-index: 2;
@@ -161,36 +187,66 @@ p {
     color: #fff;
 }
 
-.lyrics div {
-    margin: 2% 0;
-    opacity: 0.3;
-    will-change: opacity, font-size, font-weight, margin-left, margin-top, margin-bottom;
+.lyrics p {
+    position: relative;
+    margin: 0;
+    margin: 4% 0;
+    will-change: opacity, font-weight, margin-left, margin-top, margin-bottom, transform;
     transition: opacity 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
-        font-size 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
+        /* font-size 0.75s cubic-bezier(0.25, 0.8, 0.25, 1), */
         font-weight 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
         margin-left 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
-        margin-top 1s cubic-bezier(0.25, 0.8, 0.25, 1),
-        margin-bottom 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        margin-top 0.6s cubic-bezier(.01,1.22,.97,1.12),
+        margin-bottom 1s cubic-bezier(0.25, 0.8, 0.25, 1),
+        transform 0.75s cubic-bezier(0.25, 0.8, 0.25, 1);
     width: 100%;
-    text-shadow: 0 1px 5px #000;
     font-weight: normal;
     font-size: inherit;
-    margin-top: 2%;
-    font-size: 28px;
+    margin-top: 4%;
+    font-size: 36px;
+    text-shadow: -1px 1px 20px #0009, 0 1px 5px #0009;
+    align-self: flex-start;
+    transform: matrix(1, 0, 0, 1, 0, 0);
+    transform-origin: 0px 50%;
     word-wrap: break-word;
     white-space: normal;
-    /* word-break: break-all; */
+    color: #fff;
+    opacity: 0.3;
+    -webkit-background-clip: text;
+    background-clip: text;
+    z-index: 2;
 }
 
-.lyrics div.highlight {
-    margin: 2% 0;
-    opacity: 1;
-    font-size: 32px;
+.lyrics p.highlight {
+    margin: 5% 0;
     font-weight: bold;
     filter: none;
-    width: 100%;
-    margin-top: 2%;
+    margin-top: 4%;
+    opacity: 0.9;
+    transform: matrix(1.2, 0, 0, 1.2, 0, 0);
+    background-size: 100% 100%, 100% 100%;
+    transform-origin: 0px 50%;
+    word-wrap: break-word;
+    white-space: normal;
+    font-family: "SFPro-Semibold", "PingFangSC-Semibold";
 }
+
+/* .lyrics p::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    color: #fff;
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    transition: clip-path var(--type-time) linear;
+}
+
+.lyrics p.highlight::after {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+} */
 
 .background {
     margin: 0;
@@ -222,6 +278,7 @@ p {
     background-repeat: no-repeat;
     animation: 20s movement linear infinite;
     background-attachment: fixed;
+    filter: brightness(0.8);
 }
 
 @keyframes movement {

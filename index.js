@@ -11,12 +11,14 @@ const playBtn = document.querySelector(".play");
 const pauseBtn = document.querySelector(".pause");
 const audioName = document.querySelector(".name");
 const leftContent = document.querySelector(".leftcontent");
+const lyricsContainer = document.querySelector(".lyricscontainer");
 const rightContent = document.querySelector(".rightcontent");
 const mainDiv = document.querySelector(".main");
 const processedLines = new Set();
 let needProcess = undefined;
 let width = 1280;
 let height = 720;
+let called = false;
 
 function mainDivScalePosition(width, height) {
     // width: 1280, height: 720 (Image loaded)
@@ -28,9 +30,6 @@ function mainDivScalePosition(width, height) {
     mainDiv.style.transform = `scale(${scale})`;
     mainDiv.style.top = `calc(50% - ${mainDiv.clientHeight / 2}px)`;
     mainDiv.style.left = `calc(50% - ${mainDiv.clientWidth / 2}px)`;
-    if (width === 1280) {
-        mainDiv.style.marginLeft = `${7.5 * scaleX}%`;
-    }
 
     rightContent.style.paddingLeft = `${10 / scaleX}%`;
 }
@@ -41,10 +40,12 @@ window.addEventListener("resize", () => {
 mainDivScalePosition(width, height);
 
 let bgImg = new Image();
+// bgImg.src = "./default.svg";
 let playing = false;
 let isDragging = false;
 let lrcData;
 let lyrics = [];
+let allTimes = [];
 let lyricsElement = document.querySelector(".lyrics");
 let reader;
 let imageLoaded = false;
@@ -104,22 +105,23 @@ audioFileInput.addEventListener("change", (event) => {
             audioPlayer.src = fileURL;
 
             let filename = file.name.split('.')[0];
-            if (filename.length > 15) {
-                filename = filename.substring(0, 15) + "...";
+            if (filename.length > 30) {
+                filename = filename.substring(0, 30) + "...";
             }
             audioName.textContent = filename;
             audioLoaded = true;
         } else if (file.type.startsWith('text/') || file.name.toLowerCase().endsWith(".lrc")) {
             reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
+                enableLyric();
                 const buffer = e.target.result;
                 // 常见编码检测顺序：UTF-8 > GBK > Big5 > Shift_JIS
                 const encodings = ['utf-8', 'gbk', 'big5', 'shift_jis'];
                 let decodedText = '';
-                
+
                 for (const encoding of encodings) {
                     try {
-                        const decoder = new TextDecoder(encoding, {fatal: true});
+                        const decoder = new TextDecoder(encoding, { fatal: true });
                         decodedText = decoder.decode(new Uint8Array(buffer));
                         break; // 解码成功则退出循环
                     } catch (e) {
@@ -129,16 +131,17 @@ audioFileInput.addEventListener("change", (event) => {
 
                 if (!decodedText) {
                     // 所有编码尝试失败，使用默认UTF-8并替换非法字符
-                    decodedText = new TextDecoder('utf-8', {fatal: false}).decode(new Uint8Array(buffer));
+                    decodedText = new TextDecoder('utf-8', { fatal: false }).decode(new Uint8Array(buffer));
                 }
 
-                enableLyric();
                 lrcData = decodedText;
-                lyrics = parseLrc(lrcData);
+                let parsedData = parseLrc(lrcData);
+                lyrics = parsedData.lyrics;
+                allTimes = parsedData.allTimes;
                 lyricsElement = document.querySelector(".lyrics");
-                lyricsElement.innerHTML = lyrics.map(line => `<div>${line.text}</div>`).join('');
+                lyricsElement.innerHTML = lyrics.map(line => `<p data-text="${line.text}">${line.text}</p>`).join('');
             };
-            reader.readAsArrayBuffer(file); // 改为读取ArrayBuffer
+            reader.readAsArrayBuffer(file);
             lrcLoaded = true;
         }
     }
@@ -236,6 +239,7 @@ function formatTime(time) {
 function parseLrc(lrcText) {
     const lines = lrcText.trim().split('\n');
     const lrcArray = [];
+    const allTimes = [];
 
     lines.forEach(line => {
         const timeMatch = line.match(/\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/);
@@ -248,21 +252,34 @@ function parseLrc(lrcText) {
             const text = line.replace(timeMatch[0], '').trim();
 
             const timeInSeconds = minutes * 60 + seconds + milliseconds / 1000;
+
+            allTimes.push(timeInSeconds);
+
             if (text) {
                 lrcArray.push({ time: timeInSeconds, text });
             }
         }
     });
-    
-    return lrcArray;
+
+    mainDivScalePosition(width, height);
+
+    return {
+        lyrics: lrcArray,
+        allTimes: allTimes
+    };
 }
 
-
 function updateLyrics() {
+    if (!playing) return;
+
     const currentTime = audioPlayer.currentTime;
-    const lyricLines = document.querySelectorAll('.lyrics > *');
-    let activeIndex = 0;
-    needProcess = false;
+    const lyricLines = lyricsElement.querySelectorAll('*');
+    if (called) {
+        lyricsElement.style.transition = "all 1s cubic-bezier(0.25, 0.8, 0.25, 1)";
+    } else {
+        centerActiveLine(lyricLines[0]);
+    }
+    let activeIndex = -1;
 
     for (let i = 0; i < lyrics.length; i++) {
         if (currentTime >= lyrics[i].time) {
@@ -274,77 +291,80 @@ function updateLyrics() {
 
     lyricLines.forEach((line, index) => {
         const distance = Math.abs(activeIndex - index);
+        const thisTime = allTimes[activeIndex];
 
-        if (distance <= 8) {
-            if (index === activeIndex) {
-                if (!processedLines.has(index) && lyricLines[index + 1])
-                    needProcess = true;
-
-                if (needProcess && index >= 1) {
-                    line.style.marginTop = `${lyricLines[index - 1].clientHeight * 2}px`;
-                    console.log(1);
-
-                    setTimeout(() => {
-                        line.style.marginTop = "6px";
-                        processedLines.add(index);
-                    }, 100);
-                }
-
-                void line.offsetWidth;
-                line.classList.add("highlight");
-                line.style.filter = "none";
-                line.style.marginLeft = "0";
-                line.style.visibility = "visible";
-
-                setTimeout(() => {
-                    if (needProcess) {
-                        lyricLines[index + 1].style.marginTop = `${line.clientHeight - 6}px`;
-                        console.log(2);
-
-                        setTimeout(() => {
-                            lyricLines[index + 1].style.marginTop = "6px";
-                            processedLines.add(index);
-                        }, 100);
-                    }
-                }, 200);
-            } else {
-                void line.offsetWidth;
-                line.classList.remove("highlight");
-                line.style.filter = `blur(${distance * 0.5}px)`;
-                line.style.marginLeft = `${distance * 1.25}px`;
-                line.style.visibility = "visible";
-
-                if (distance >= 9) {
-                    line.style.visibility = "hidden";
-                }
-            }
-        } else {
+        if (distance > 8) {
             line.style.visibility = "hidden";
+            return;
+        }
+
+        if (index === activeIndex) {
+            applyActiveLineStyle(line, index, lyricLines, thisTime);
+        } else {
+            applyNearbyLineStyle(line, distance);
         }
     });
 
     if (activeIndex >= 0) {
-        // setTimeout(() => {
-        //     const activeLine = lyricLines[activeIndex];
-        //     if (activeLine) {
-        //         const containerHeight = document.querySelector(".lyricscontainer").clientHeight;
-        //         const activeLineOffset = activeLine.offsetTop;
-        //         const offset = (containerHeight / 2) - activeLineOffset - 0.1 * containerHeight;
-        //         lyricsElement.style.top = `${offset}px`;
-        //     }
-        // }, 100);
-        const activeLine = lyricLines[activeIndex];
-        if (activeLine) {
-            const containerHeight = document.querySelector(".lyricscontainer").clientHeight;
-            const activeLineOffset = activeLine.offsetTop;
-            const offset = (containerHeight / 2) - activeLineOffset - 0.1 * containerHeight;
-            lyricsElement.style.top = `${offset}px`;
-        }
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                centerActiveLine(lyricLines[activeIndex]);
+            }, 120);
+        });
     }
 
-    if (playing) {
-        requestAnimationFrame(updateLyrics);
+    requestAnimationFrame(updateLyrics);
+}
+
+function applyActiveLineStyle(line, index, allLines, thisTime) {
+    void line.offsetWidth;
+    setTimeout(() => {
+        line.classList.add("highlight");
+        line.style.filter = "none";
+        line.style.marginLeft = "0";
+        line.style.visibility = "visible";
+        line.style.opacity = "0.6";
+        line.style.setProperty("--type-time", `${thisTime / 2}s`);
+    }, 300);
+
+    if (!processedLines.has(index)) {
+        processedLines.add(index);
+
+        const start = Math.max(0, index - 3);
+        const end = Math.min(allLines.length - 1, index + 3);
+        const displayingLines = Array.from(allLines).slice(start, end + 1);
+
+        displayingLines.forEach((nline, i) => {
+            setTimeout(() => {
+                nline.style.marginTop = `${line.clientHeight}px`;
+
+                setTimeout(() => {
+                    nline.style.marginTop = "4%";
+                }, 250);
+            }, i * 75);
+        });
     }
+}
+
+function applyNearbyLineStyle(line, distance) {
+    void line.offsetWidth;
+    line.classList.remove("highlight");
+    line.style.filter = `blur(${distance * 0.5}px)`;
+    line.style.marginLeft = `${distance * 1.25}px`;
+    line.style.opacity = `${0.3 - distance / 100}`;
+    line.style.visibility = "visible";
+}
+
+function centerActiveLine(activeLine) {
+    if (!activeLine) return;
+    if (!called) called = true;
+
+    const container = document.querySelector(".lyricscontainer");
+    const containerHeight = container.clientHeight;
+    const activeLineOffset = activeLine.offsetTop;
+    const offset = (containerHeight / 2) - activeLineOffset - (0.1 * containerHeight);
+
+    lyricsElement.style.transform = `translateY(${offset}px)`;
 }
 
 audioPlayer.addEventListener('play', () => {
@@ -359,44 +379,39 @@ window.addEventListener('resize', () => {
 
 updateLyrics();
 
-function getDominantColors(imageData, colorCount = 5) {
-    const pixels = imageData.data
-    const colorMap = {}
-    const minColorDistance = 45
+function getDominantColors(imageData, colorCount = 5, minColorDistance = 100) {
+    const pixels = imageData.data;
+    const sampledColors = []; // 存储采样后的颜色（未去重）
+    const dominantColors = []; // 最终返回的主色调（去重后）
 
-    for (let i = 0; i < pixels.length; i += 4 * 4) {
-        const r = pixels[i]
-        const g = pixels[i + 1]
-        const b = pixels[i + 2]
-        const key = `${r},${g},${b}`
-
-        let isUnique = true
-        for (const existingColor of Object.keys(colorMap)) {
-            const [er, eg, eb] = existingColor.split(',').map(Number)
-            const distance = Math.sqrt((r - er) ** 2 + (g - eg) ** 2 + (b - eb) ** 2)
-            if (distance < minColorDistance) {
-                isUnique = false
-                break
-            }
-        }
-
-        if (isUnique) {
-            colorMap[key] = (colorMap[key] || 0) + 1
-        }
+    // 1. 每隔 16 个像素采样一次（减少计算量）
+    for (let i = 0; i < pixels.length; i += 4 * 13) {
+        const r = pixels[i];
+        const g = pixels[i + 1];
+        const b = pixels[i + 2];
+        sampledColors.push([r, g, b]);
     }
 
-    return Object.entries(colorMap)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, colorCount)
-        .map(([color]) => {
-            const [r, g, b] = color.split(',')
-            return `rgba(${r}, ${g}, ${b}, 0.9)`
-        })
+    sampledColors.forEach(([r, g, b]) => {
+        const isUnique = dominantColors.every(([er, eg, eb]) => {
+            const distance = Math.sqrt((r - er) ** 2 + (g - eg) ** 2 + (b - eb) ** 2);
+            return distance >= minColorDistance; // 颜色差异足够大才保留
+        });
+
+        if (isUnique) {
+            dominantColors.push([r, g, b]);
+            if (dominantColors.length >= colorCount) return; // 提前终止
+        }
+
+        console.log(r, g, b)
+    });
+
+    return dominantColors.map(([r, g, b]) => `rgba(${r},${g},${b},0.9)`);
 }
 
 bgImg.onload = () => {
     justSvg.style.display = "none";
-    svgcontainer.style.background = `url(${bgImg.src}`;
+    svgcontainer.style.background = `url(${bgImg.src})`;
     svgcontainer.style.backgroundSize = "cover";
     svgcontainer.style.backgroundPosition = "center";
     svgcontainer.style.backgroundRepeat = "no-repeat";
